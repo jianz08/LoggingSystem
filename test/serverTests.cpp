@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <gtest/gtest.h>
-#include "../server.hpp"
+#include "server.hpp"
 
 TEST(serverTests, testInputOneLine){
     std::string text = "23982565683###tom###INFO:process started";
