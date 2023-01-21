@@ -35,12 +35,3 @@ void LogImpl::saveLog(const std::string &line)
 {
     _log_file << line << std::endl;
 }
-
-/* int main()
-{
-    LogImpl logImpl(std::cin, "logs.txt");
-
-    logImpl.process();
-
-    return 0;
-} */
