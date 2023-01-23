@@ -3,7 +3,8 @@
 
 int main()
 {
-    LogImpl logImpl(std::cin, "logs.txt");
+    MyOstreamImpl myOstreamImpl(std::cout);
+    LogImpl logImpl(std::cin, myOstreamImpl);
 
     logImpl.process();
 

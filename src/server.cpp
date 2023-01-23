@@ -4,14 +4,19 @@
 #include <istream>
 #include "server.hpp"
 
-LogImpl::LogImpl(std::istream &input, std::string fileName) : _input(input)
+MyOstreamImpl::MyOstreamImpl(std::ostream &output) : output_(output)
 {
-    _log_file.open(fileName);
 }
-LogImpl::~LogImpl()
+
+void MyOstreamImpl::log(std::string const &line)
 {
-    _log_file.close();
+    output_ << line << std::endl;
 }
+
+LogImpl::LogImpl(std::istream &input, MyOstream &output) : input_(input), output_(output)
+{
+}
+
 void LogImpl::process()
 {
     while (true)
@@ -19,7 +24,6 @@ void LogImpl::process()
         std::string line = inputLog();
         if (line.empty())
             break;
-        std::cout << line << std::endl;
         saveLog(line);
     }
 }
@@ -27,11 +31,11 @@ void LogImpl::process()
 std::string LogImpl::inputLog()
 {
     std::string line;
-    std::getline(_input, line);
+    std::getline(input_, line);
     return line;
 }
 
 void LogImpl::saveLog(const std::string &line)
 {
-    _log_file << line << std::endl;
+    output_.log(line);
 }
