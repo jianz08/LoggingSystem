@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <istream>
+#include <regex>
 #include "server.hpp"
 
 MyOstreamImpl::MyOstreamImpl(std::ostream &output) : output_(output)
@@ -37,5 +38,33 @@ std::string LogImpl::inputLog()
 
 void LogImpl::saveLog(const std::string &line)
 {
-    output_.log(line);
+    LogInfo logInfo;
+    if (validateLog(line, logInfo)) {
+        std::string outputStr;
+        outputStr = std::to_string(logInfo.timestamp) + "\t" +
+                    logInfo.user + "\t" +
+                    logInfo.infoType + "\t" +
+                    logInfo.info;
+        output_.log(outputStr);
+    } else {
+        std::cerr<<"Log format is invalid: "<<line<<std::endl;
+    }
+}
+
+bool validateLog(const std::string &line, LogInfo & logInfo)
+{
+    // The input of the log needs to follow the format below:
+    // {timestamp}###{user}###{type}:{info}
+    std::regex pattern("^(\\d+)###(\\w+)###(\\w+):([^#]+)$");
+    std::smatch match;
+
+    if (!(std::regex_match(line, match, pattern) && match.size() == 5)) {
+        return false;
+    }
+
+    logInfo.timestamp = static_cast<int64_t>(std::stoll(match[1].str()));
+    logInfo.user = match[2].str();
+    logInfo.infoType = match[3].str();
+    logInfo.info = match[4].str();
+    return true;
 }

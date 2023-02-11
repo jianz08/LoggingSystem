@@ -16,7 +16,18 @@ TEST(serverTests, testInputOneLineMockMyOstream)
     std::string text = "23982565683###tom###INFO:process started";
     std::istringstream input(text);
     MockMyOstream mockMyOstream;
-    EXPECT_CALL(mockMyOstream, log(text)).Times(1);
+    EXPECT_CALL(mockMyOstream, log("23982565683\ttom\tINFO\tprocess started")).Times(1);
+
+    LogImpl LogImpl(input, mockMyOstream);
+    LogImpl.process();
+}
+
+TEST(serverTests, testInputOneLineMockMyOstreamInvalid)
+{
+    std::string text = "23982565683###tom###INFO:process## started";
+    std::istringstream input(text);
+    MockMyOstream mockMyOstream;
+    EXPECT_CALL(mockMyOstream, log(testing::_)).Times(0);
 
     LogImpl LogImpl(input, mockMyOstream);
     LogImpl.process();
@@ -30,8 +41,8 @@ TEST(serverTests, testInputMultipleLinesMockMyOstream)
     std::string text = line1 + "\n" + line2;
     std::istringstream input(text);
     MockMyOstream mockMyOstream;
-    EXPECT_CALL(mockMyOstream, log(line1)).Times(1);
-    EXPECT_CALL(mockMyOstream, log(line2)).Times(1);
+    EXPECT_CALL(mockMyOstream, log("23982565683\ttom\tINFO\tprocess started")).Times(1);
+    EXPECT_CALL(mockMyOstream, log("239825683\ttom\tINFO\tprocess ended")).Times(1);
 
     LogImpl LogImpl(input, mockMyOstream);
     LogImpl.process();
@@ -40,7 +51,6 @@ TEST(serverTests, testInputMultipleLinesMockMyOstream)
 TEST(serverTests, testInputMultipleLines)
 {
     std::string text = "23982565683###tom###INFO:process started\n239825683###tom###INFO:process ended\n";
-    std::string fileName = "logsTest.txt";
     std::istringstream input(text);
     std::ostringstream output;
     MyOstreamImpl myOstreamImpl(output);
@@ -48,5 +58,38 @@ TEST(serverTests, testInputMultipleLines)
     LogImpl.process();
 
     std::string line = output.str();
-    EXPECT_EQ(text, line);
+    EXPECT_EQ("23982565683\ttom\tINFO\tprocess started\n239825683\ttom\tINFO\tprocess ended\n", line);
+}
+
+
+TEST(serverTests, testValidateLog)
+{
+    LogInfo logInfo;
+    std::string valid_line = "23982565683###tom###INFO:process started";
+    EXPECT_TRUE(validateLog(valid_line, logInfo));
+    EXPECT_EQ(logInfo.timestamp, 23982565683);
+    EXPECT_EQ(logInfo.user, "tom");
+    EXPECT_EQ(logInfo.infoType, "INFO");
+    EXPECT_EQ(logInfo.info, "process started");
+    valid_line = "239825683###tom###INFO:process ended";
+    EXPECT_TRUE(validateLog(valid_line, logInfo));
+    valid_line = "239825683###tom###INFO:process";
+    EXPECT_TRUE(validateLog(valid_line, logInfo));
+    valid_line = "239825683###tom###INFO:process end foo  bar";
+    EXPECT_TRUE(validateLog(valid_line, logInfo));
+    valid_line = "239825683###tom###INFO: ";
+    EXPECT_TRUE(validateLog(valid_line, logInfo));
+
+    std::string invalid_line = "239825683####tom###INFO:process ended";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
+    invalid_line = "239825683###tom####INFO:process ended";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
+    invalid_line = "239825683###tom###INFO:process# ended";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
+    invalid_line = "239825683###tom###INFO process ended";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
+    invalid_line = "239825683###tom###INFO:process# ended";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
+    invalid_line = "239825683###tom###INFO:";
+    EXPECT_FALSE(validateLog(invalid_line, logInfo));
 }

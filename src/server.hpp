@@ -28,7 +28,18 @@ public:
 private:
     std::string inputLog();
     void saveLog(const std::string &line);
+    
 
     std::istream &input_;
     MyOstream &output_;
 };
+
+struct LogInfo
+{
+    int64_t timestamp{0};
+    std::string user;
+    std::string infoType;
+    std::string info;
+};
+
+bool validateLog(const std::string &line, LogInfo & logInfo);
