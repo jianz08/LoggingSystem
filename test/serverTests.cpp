@@ -5,10 +5,25 @@
 #include "gmock/gmock.h"
 #include "server.hpp"
 
-class MockMyOstream : public MyOstream
+class MockMyOstream : public Writer
 {
 public:
-    MOCK_METHOD(void, log, (std::string const &), (override));
+    //MOCK_METHOD(void, log, (std::string const &), (override));
+    MOCK_METHOD(void, log, (LogInfo const &), (override));
+};
+
+LogInfo const logInfo1 = {
+    23982565683,
+    "tom",
+    "INFO",
+    "process started"
+};
+
+LogInfo const logInfo2 = {
+    239825683,
+    "tom",
+    "INFO",
+    "process ended"
 };
 
 TEST(serverTests, testInputOneLineMockMyOstream)
@@ -16,7 +31,7 @@ TEST(serverTests, testInputOneLineMockMyOstream)
     std::string text = "23982565683###tom###INFO:process started";
     std::istringstream input(text);
     MockMyOstream mockMyOstream;
-    EXPECT_CALL(mockMyOstream, log("23982565683\ttom\tINFO\tprocess started")).Times(1);
+    EXPECT_CALL(mockMyOstream, log(logInfo1)).Times(1);
 
     LogImpl LogImpl(input, mockMyOstream);
     LogImpl.process();
@@ -41,8 +56,8 @@ TEST(serverTests, testInputMultipleLinesMockMyOstream)
     std::string text = line1 + "\n" + line2;
     std::istringstream input(text);
     MockMyOstream mockMyOstream;
-    EXPECT_CALL(mockMyOstream, log("23982565683\ttom\tINFO\tprocess started")).Times(1);
-    EXPECT_CALL(mockMyOstream, log("239825683\ttom\tINFO\tprocess ended")).Times(1);
+    EXPECT_CALL(mockMyOstream, log(logInfo1)).Times(1);
+    EXPECT_CALL(mockMyOstream, log(logInfo2)).Times(1);
 
     LogImpl LogImpl(input, mockMyOstream);
     LogImpl.process();
@@ -53,7 +68,7 @@ TEST(serverTests, testInputMultipleLines)
     std::string text = "23982565683###tom###INFO:process started\n239825683###tom###INFO:process ended\n";
     std::istringstream input(text);
     std::ostringstream output;
-    MyOstreamImpl myOstreamImpl(output);
+    SingleStreamWriter myOstreamImpl(output);
     LogImpl LogImpl(input, myOstreamImpl);
     LogImpl.process();
 

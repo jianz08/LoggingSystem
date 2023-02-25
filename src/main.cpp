@@ -3,8 +3,13 @@
 
 int main()
 {
-    MyOstreamImpl myOstreamImpl(std::cout);
-    LogImpl logImpl(std::cin, myOstreamImpl);
+    //SingleStreamWriter singleStreamWriter(std::cout);
+    //LogImpl logImpl(std::cin, singleStreamWriter);
+    std::ifstream input_file("testing_logs.txt", std::ios::in);
+
+    MultipleStreamWriter multipleStreamWriter;
+    //LogImpl logImpl(std::cin, multipleStreamWriter);
+    LogImpl logImpl(input_file, multipleStreamWriter);
 
     logImpl.process();
 
