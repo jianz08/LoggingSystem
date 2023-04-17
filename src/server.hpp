@@ -13,12 +13,37 @@ struct LogInfo
     std::string info;
 };
 
-inline bool operator == (const LogInfo &lhs, const LogInfo &rhs){
-    return lhs.timestamp == rhs.timestamp
-            && lhs.user == rhs.user
-            && lhs.infoType == rhs.infoType
-            && lhs.info == rhs.info;
+inline bool operator==(const LogInfo &lhs, const LogInfo &rhs)
+{
+    return lhs.timestamp == rhs.timestamp && lhs.user == rhs.user && lhs.infoType == rhs.infoType && lhs.info == rhs.info;
 }
+class Reader
+{
+public:
+    virtual std::string getline() = 0;
+};
+
+class StreamReader : public Reader
+{
+public:
+    StreamReader(std::istream &input);
+    std::string getline() override;
+private:
+    std::istream &input_;
+};
+
+class SocketReader : public Reader
+{
+public:
+    SocketReader(uint16_t portNum);
+    std::string getline() override;
+private:
+    int socketInit();
+    void socketAccept();
+    uint16_t portNum_;
+    int listenSocket_;
+    int clientSocket_;
+};
 
 class Writer
 {
@@ -39,31 +64,30 @@ private:
 class MultipleStreamWriter : public Writer
 {
 public:
-    //MultipleStreamWriter();
+    // MultipleStreamWriter();
     void log(LogInfo const &logInfo) override;
 
 private:
     std::unordered_map<std::string, std::ofstream> umap;
-    //std::unordered_map<std::string, std::unique_ptr<std::ofstream>> umap;
+    // std::unordered_map<std::string, std::unique_ptr<std::ofstream>> umap;
 
-    //std::unordered_map<std::string, std::ofstream *> umap;
+    // std::unordered_map<std::string, std::ofstream *> umap;
 };
 
 class LogImpl
 {
 public:
-    explicit LogImpl(std::istream &input, Writer &output);
+    explicit LogImpl(Reader &input, Writer &output);
     ~LogImpl() = default;
     void process();
 
 private:
     std::string inputLog();
     void saveLog(const std::string &line);
-    
 
-    std::istream &input_;
-    Writer &output_;
+    Reader &reader_;
+    Writer &writer_;
 };
 
-bool validateLog(const std::string &line, LogInfo & logInfo);
+bool validateLog(const std::string &line, LogInfo &logInfo);
 #endif

@@ -30,10 +30,11 @@ TEST(serverTests, testInputOneLineMockMyOstream)
 {
     std::string text = "23982565683###tom###INFO:process started";
     std::istringstream input(text);
+    StreamReader streamReader(input);
     MockMyOstream mockMyOstream;
     EXPECT_CALL(mockMyOstream, log(logInfo1)).Times(1);
 
-    LogImpl LogImpl(input, mockMyOstream);
+    LogImpl LogImpl(streamReader, mockMyOstream);
     LogImpl.process();
 }
 
@@ -41,10 +42,11 @@ TEST(serverTests, testInputOneLineMockMyOstreamInvalid)
 {
     std::string text = "23982565683###tom###INFO:process## started";
     std::istringstream input(text);
+    StreamReader streamReader(input);
     MockMyOstream mockMyOstream;
     EXPECT_CALL(mockMyOstream, log(testing::_)).Times(0);
 
-    LogImpl LogImpl(input, mockMyOstream);
+    LogImpl LogImpl(streamReader, mockMyOstream);
     LogImpl.process();
 }
 
@@ -55,11 +57,12 @@ TEST(serverTests, testInputMultipleLinesMockMyOstream)
     std::string line2 = "239825683###tom###INFO:process ended";
     std::string text = line1 + "\n" + line2;
     std::istringstream input(text);
+    StreamReader streamReader(input);
     MockMyOstream mockMyOstream;
     EXPECT_CALL(mockMyOstream, log(logInfo1)).Times(1);
     EXPECT_CALL(mockMyOstream, log(logInfo2)).Times(1);
 
-    LogImpl LogImpl(input, mockMyOstream);
+    LogImpl LogImpl(streamReader, mockMyOstream);
     LogImpl.process();
 }
 
@@ -67,9 +70,10 @@ TEST(serverTests, testInputMultipleLines)
 {
     std::string text = "23982565683###tom###INFO:process started\n239825683###tom###INFO:process ended\n";
     std::istringstream input(text);
+    StreamReader streamReader(input);
     std::ostringstream output;
     SingleStreamWriter myOstreamImpl(output);
-    LogImpl LogImpl(input, myOstreamImpl);
+    LogImpl LogImpl(streamReader, myOstreamImpl);
     LogImpl.process();
 
     std::string line = output.str();
